@@ -1,0 +1,20 @@
+select if_insurance_plan.plan_name,
+                
+                count(if_user_insure.insurance_id) as 单量,
+                
+                TO_CHAR(if_insurance_plan.create_time,
+                'yyyy-MM-dd') as 创建时间,
+                coalesce(sum(pay_amount), 0) as 保费
+                
+from yxhb_insurance_core.if_insurance_plan
+left join yxhb_insurance_core.if_user_insure on
+    yxhb_insurance_core.if_user_insure.insurance_product_code = yxhb_insurance_core.if_insurance_plan.product_code
+where insurance_plan_code not in('SHANXI2021', 'SHANXI2022001126', 'SUINING2023001069', 'HEBEI20220099', 'HULUDAO20221089'
+)
+
+${IF(len(投保起期)==0,"","and Pol_apply_date >= '"+投保起期+"'")}
+${IF(len(投保止期)==0,"","and Pol_apply_date <= '"+投保止期+" 23:59:59'")}
+${IF(len(产品名称)==0,""," and plan_name in ('"+产品名称+"')")}
+${IF(len(保单状态)==0,"","and insurance_status in ('"+保单状态+"')")}
+group by if_insurance_plan.plan_name, TO_CHAR(if_insurance_plan.create_time,'yyyy-MM-dd')
+order by 保费 desc;
